@@ -7,7 +7,7 @@ from binaryTree import TreeNode
 
 
 def isBalanced( root: TreeNode ) -> bool :
-    def height( root: TreeNode ) -> int :
+    def height( root: TreeNode ) -> int : # best one
         if not root :
             return 0
         leftHeight = height( root.left )
