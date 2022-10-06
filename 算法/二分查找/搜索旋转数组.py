@@ -32,7 +32,7 @@ class Solution :
 
 if __name__ == '__main__' :
     s = Solution()
-    nums = [3,1]
+    nums = [ 3 , 1 ]
     target = 1
     print( s.search( nums , target ) )
     print( "finished" )

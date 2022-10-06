@@ -5,6 +5,7 @@
 from typing import List , Tuple , Dict , Optional
 import bisect as bis
 
+
 class Solution :
     def minNumber( self , array: List[ int ] , n: int ) -> int :
         def increase( nums: List[ int ] ) -> List[ int ] :
@@ -22,24 +23,23 @@ class Solution :
             return dp
 
         leftMax = increase( array )
-        rightMax = increase( array[::-1] )[::-1]
+        rightMax = increase( array[ : :-1 ] )[ : :-1 ]
         L = 0
-        for i in range(n):
-            L = max( L , leftMax[i] + rightMax[i])
-        L -=1
-        return n-L
+        for i in range( n ) :
+            L = max( L , leftMax[ i ] + rightMax[ i ] )
+        L -= 1
+        return n - L
+
 
 S = Solution()
-while 1:
-    try:
+while 1 :
+    try :
         n = int( input() )
-        nums = list( map(int,   input().split() ) )
-        res = S.minNumber( nums , n)
-        print( str(res) )
-    except:
+        nums = list( map( int , input().split() ) )
+        res = S.minNumber( nums , n )
+        print( str( res ) )
+    except :
         break
-
-
 
 #
 # if __name__ == '__main__' :

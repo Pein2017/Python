@@ -14,13 +14,12 @@ class Solution :
         left , right = 1 , x // 2 + 1
         while left <= right :
             mid = int( left + (right - left) / 2 )
-            print( "{},{},{}".format(left,mid,right))
-            if mid * mid <= x:
+            print( "{},{},{}".format( left , mid , right ) )
+            if mid * mid <= x :
                 ans = mid
                 left = mid + 1
-            else:
+            else :
                 right = mid - 1
-
 
         return ans
 
