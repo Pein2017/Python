@@ -17,10 +17,9 @@ def lengthOfLIS( nums: List[ int ] ) -> int :
     # t1 = [ 2 5 7]
     # t2 = [ 2 5 6]
     # 则将 t1 替换成 t2， t[pos] = nums[check] （6）
-
+    n = len( nums )
     t = [ float('inf') for _ in range(n) ]
     t[0]=nums[0]
-    n = len( nums )
     for i in range( 1 , n ):
         pos = bis.bisect_left( t , nums[i] )
         print( t , pos )

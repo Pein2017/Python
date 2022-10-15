@@ -9,5 +9,10 @@ if __name__ == '__main__' :
     x = torch.rand( 5 , 3 )
     print( x )
     a = torch.cuda.is_available()
-    print(a)
+    print( a )
     print( "finished" )
+    a = 3
+    print( a )
+    import sys
+
+    print( sys.executable )
