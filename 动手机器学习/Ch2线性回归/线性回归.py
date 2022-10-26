@@ -47,7 +47,7 @@ def linear_train( X , y , learning_rate=0.01 , epochs=10 ** 4 ) :
     # 初始化
     W , b = initialize_params( X.shape[ 1 ] )
     # training
-    for i in range( 1 , epochs ) :
+    for i in range( epochs ) :
         # 计算当前迭代的预测值、LOSS和梯度
         y_hat , loss , dW , db = linear_loss( X , y , W , b )
         W += -learning_rate * dW
@@ -107,8 +107,9 @@ def r2_score( y_test , y_pred ) :
     r2 = 1 - (ss_res / ss_tot)
     return r2
 
-
+import matplotlib.pyplot as plt
 print(" r2 is {}".format( r2_score( y_test , y_pred ) ) )
+plt.plot( loss_his )
 
 if __name__ == '__main__' :
     print( "finished!" )
