@@ -8,27 +8,28 @@ from math import log
 
 import numpy as np
 
+
 ### 定义二叉特征分裂函数
-def feature_split(X, feature_i, threshold):
+def feature_split( X , feature_i , threshold ) :
     split_func = None
-    if isinstance(threshold, int) or isinstance(threshold, float):
-        split_func = lambda sample: sample[feature_i] >= threshold
-    else:
-        split_func = lambda sample: sample[feature_i] == threshold
+    if isinstance( threshold , int ) or isinstance( threshold , float ) :
+        split_func = lambda sample : sample[ feature_i ] >= threshold
+    else :
+        split_func = lambda sample : sample[ feature_i ] == threshold
 
-    X_left = np.array([sample for sample in X if split_func(sample)])
-    X_right = np.array([sample for sample in X if not split_func(sample)])
+    X_left = np.array( [ sample for sample in X if split_func( sample ) ] )
+    X_right = np.array( [ sample for sample in X if not split_func( sample ) ] )
 
-    return np.array([X_left, X_right])
+    return np.array( [ X_left , X_right ] )
 
 
 ### 计算基尼指数
-def calculate_gini(y):
+def calculate_gini( y ) :
     # 将数组转化为列表
     y = y.tolist()
-    probs = [y.count(i)/len(y) for i in np.unique(y)]
-    gini = sum([p*(1-p) for p in probs])
-    return
+    probs = [ y.count( i ) / len( y ) for i in np.unique( y ) ]
+    gini = sum( [ p * (1 - p) for p in probs ] )
+    return gini
 
 
 def entropy( ele ) :
@@ -62,6 +63,12 @@ def df_split( df , col ) :
     res_dict = {elem : pd.DataFrame for elem in unique_col_val}
     for key in res_dict.keys() :
         res_dict[ key ] = df[ : ][ df[ col ] == key ]
+    '''
+    例如Iris数据 
+    第一个特征数据 为 长度 
+    res_dict :    { 1.2 : dataset1 , 2.4 : dataset2 , 2.5 : dataset3 }
+    '''
+
     return res_dict
 
 
@@ -69,7 +76,7 @@ def choose_best_feature( df , label ) :
     '''
 
     :param df: 待划分的训练数据
-    :param label:
+    :param label: 训练标签
     :return:
     max_value: 最大信息增益
     best_feature: 最优特征
@@ -87,6 +94,9 @@ def choose_best_feature( df , label ) :
         splited_set = df_split( df , col )
         # 初始化条件熵
         entropy_DA = 0
+        '''
+        这里的 subset_col 代表着需要遍历的特征的元素，例如长度，1.2， 2.4， 2.5... 由于没有预测函数，这里只在意这个值其对应的dataset的信息增益
+        '''
         # 对划分后的数据集 遍历计算
         for subset_col , subset in splited_set.items() :
             # 计算划分后的数据子集的标签信息熵
@@ -146,7 +156,7 @@ X_train , X_test , y_train , y_test = train_test_split( X , y , test_size=0.3 )
 test = pd.DataFrame( X )
 test[ 'target' ] = y
 
-id3_tree = ID3Tree( df = test , label = 'target' )
+id3_tree = ID3Tree( df=test , label='target' )
 id3_tree.construct_tree()
 if __name__ == '__main__' :
     print( "finished!" )

@@ -12,11 +12,11 @@ from sklearn.model_selection import train_test_split
 
 iris = datasets.load_iris()
 X , y = iris.data , iris.target
-X_train ,  X_test , y_train , y_test = train_test_split( X , y , test_size=0.3 , random_state=13 )
+X_train , X_test , y_train , y_test = train_test_split( X , y , test_size=0.3 , random_state=13 )
 y_train , y_test = y_train.reshape( (-1 , 1) ) , y_test.reshape( (-1 , 1) )
 
 
-def compute_distances(  X , X_train ) :
+def compute_distances( X , X_train ) :
     '''
     :param X:  测试样本
     :param X_train: 训练样本
@@ -25,15 +25,16 @@ def compute_distances(  X , X_train ) :
     '''
     num_test = X.shape[ 0 ]
     num_train = X_train.shape[ 0 ]
-    dists = np.zeros_like( (num_test , num_train) )
+    # dists = np.zeros_like( (num_test , num_train) )
     M = np.dot( X , X_train.T )
     te = np.square( X ).sum( axis=1 )
     tr = np.square( X_train ).sum( axis=1 )
     #
-    dists = np.sqrt( -2 * M + tr + np.matrix( te ).T )
+    dists = np.sqrt( -2 * M + np.matrix( tr ) + np.matrix( te ).T )
     return dists
 
-def predict_labels(  y_train , dists , k=1 ) :
+
+def predict_labels( y_train , dists , k=1 ) :
     nums_test = dists.shape[ 0 ]
     y_pred = np.zeros( nums_test )
     for i in range( nums_test ) :
@@ -49,14 +50,16 @@ def predict_labels(  y_train , dists , k=1 ) :
         y_pred[ i ] = c.most_common( 1 )[ 0 ][ 0 ]
     return y_pred
 
-dists = compute_distances( X_test , X_train )
 
-y_test_pred = predict_labels( y_train , dists ,k = 1 ).reshape( (-1 , 1) )
+dists = compute_distances( X_test , X_train )
+plt.imshow( dists , interpolation='None'  )
+plt.show( block = True)
+
+y_test_pred = predict_labels( y_train , dists , k=1 ).reshape( (-1 , 1) )
 # 找出正确实例
 num_correct = np.sum( y_test_pred == y_test )
 acc = float( num_correct ) / X_test.shape[ 0 ]
 print( 'KNN accuracy is {}'.format( acc ) )
-
 
 num_folds = 5
 k_choices = [ 1 , 3 , 5 , 8 , 10 , 12 , 15 , 20 ]
@@ -81,27 +84,22 @@ for k in k_choices :
         # get.( key , value)
         # 如果无这个key, 返回设定的value
         k_to_acc[ k ] = k_to_acc.get( k , [ ] ) + [ acc ]
-        k_to_acc = k_to_acc
-        k_choices = [ 1 , 3 , 5 , 8 , 10 , 12 , 15 , 20 ]
+
+
 for k in sorted( k_to_acc ) :
     for acc in k_to_acc[ k ] :
         print( 'k = {}, acc = {}'.format( k , acc ) )
-
 
 for k in k_choices :
     acc = k_to_acc[ k ]
     plt.scatter( [ k ] * len( acc ) , acc )
 acc_mean = np.array( [ np.mean( v ) for k , v in sorted( k_to_acc.items() ) ] )
 acc_std = np.array( [ np.std( v ) for k , v in sorted( k_to_acc.items() ) ] )
-plt.errorbar( k_choices , acc_mean , yerr = acc_std)
-plt.title( 'CV on k')
-plt.xlabel('k')
-plt.ylabel('acc')
-plt.show( block = True )
-
-
-
-
+plt.errorbar( k_choices , acc_mean , yerr=acc_std )
+plt.title( 'CV on k' )
+plt.xlabel( 'k' )
+plt.ylabel( 'acc' )
+plt.show( block=True )
 
 if __name__ == '__main__' :
     print( "finished!" )
