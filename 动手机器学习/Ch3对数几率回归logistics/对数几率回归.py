@@ -21,15 +21,15 @@ def logistic( X , y , W , b ) :
     num_train = X.shape[ 0 ]
     num_feature = X.shape[ 1 ]
     # 对数几率回归模型的输出
-    a = sigmod( np.dot( X , W ) + b )
+    y_hat = sigmod( np.dot( X , W ) + b )
     # 交叉损失
-    cost = -1 / num_train * np.sum( y * np.log( a ) + (1 - y) * np.log( 1 - a ) )
+    cost = -1 / num_train * np.sum( y * np.log( y_hat ) + (1 - y) * np.log( 1 - y_hat ) )
     # 权重梯度
-    dW = np.dot( X.T , (a - y) ) / num_train
-    db = np.sum( a - y ) / num_train
+    dW = np.dot( X.T , (y_hat - y) ) / num_train
+    db = np.sum( y_hat - y ) / num_train
     # 压缩LOSS数组维度
     cost = np.squeeze( cost )
-    return a , cost , dW , db
+    return y_hat , cost , dW , db
 
 
 def logistic_train( X , y , learning_rate=0.01 , epochs=10 ** 4 ) :

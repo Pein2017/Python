@@ -38,7 +38,6 @@ class Adaboost :
             # 设定一个最小化误差率
             min_error = float( 'inf' )
             # 遍历数据特征，根据最小分类误差选择特征
-
             for i in range( n ) :
                 # 获得特征值
                 values = np.expand_dims( X[ : , i ] , axis=1 )
@@ -51,14 +50,12 @@ class Adaboost :
                     pred = np.ones( np.shape( y ) )
 
                     pred[ X[ :,i ] < threshold ] = - 1
-
                     # 计算误差率
                     error = sum( w[ y != pred ] )
-                    # 如果误差率大于0.5，则进行政府预测的翻转
+                    # 如果误差率大于0.5，则进行正负预测的翻转
                     if error > 0.5 :
                         error = 1 - error
                         p = -1
-
                     # 一旦获得了最小误差率，则保存相关参数
                     if error < min_error :
                         estimator.label = p
@@ -85,7 +82,8 @@ class Adaboost :
         y_pred = np.zeros( (m , 1) )
         for estimator in self.estimators :
             predictions = np.ones( np.shape( y_pred ) )
-            negative_idx = (estimator.label * X[ : , estimator.feature_index ] < estimator.label * estimator.threshold)
+            negative_idx =    (estimator.label * X[ : , estimator.feature_index ] < estimator.label * estimator.threshold)
+            # negative_idx =    ( X[ : , estimator.feature_index ] <  estimator.threshold) 这样不行的
             # 将负类设为 '-1'
             predictions[ negative_idx ] = -1
             # 对分类器的 预测结果 加权
@@ -99,18 +97,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_blobs
 
 # 生成模拟二分类数据集
-X , y = make_blobs( n_samples=500 , n_features=10 , centers=2,
-                    cluster_std=3 , random_state=13 )
+X , y = make_blobs( n_samples=700 , n_features=10 , centers=2,
+                    cluster_std=5 , random_state=13 )
 # 将标签转换为1/-1
 y_ = y.copy()
 y_[ y_ == 0 ] = -1
 y_ = y_.astype( float )
 # 训练/测试数据集划分
 X_train , X_test , y_train , y_test = train_test_split( X , y_ ,
-                                                        test_size=0.3 , random_state=43 )
+                                                        test_size=0.4 , random_state=43 )
 y_train , y_test = y_train.reshape( (-1 , 1) ) , y_test.reshape( (-1 , 1) )
 # 设置颜色参数
-colors = {0 : 'r' , 1 : 'g'}
+# colors = {0 : 'r' , 1 : 'g'}
 # 绘制二分类数据集的散点图
 # plt.scatter( X[ : , 0 ] , X[ : , 1 ] , marker='o' , c=pd.Series( y ).map( colors ) )
 # plt.show( block=True );
@@ -118,7 +116,7 @@ colors = {0 : 'r' , 1 : 'g'}
 from sklearn.metrics import accuracy_score
 
 # 创建Adaboost模型实例
-clf = Adaboost( n_estimators= 5 )
+clf = Adaboost( n_estimators= 2 )
 # 模型拟合
 clf.fit( X_train , y_train )
 # 模型预测

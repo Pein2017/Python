@@ -10,6 +10,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
+from Ch7决策树.utils import feature_split , calculate_gini
 
 
 # 定义树节点
@@ -23,43 +24,29 @@ class TreeNode :
         self.right_branch = right_branch
 
 
-def feature_split( X , feature_i , splitted_value ) :
-    split_func = None
-    if isinstance( splitted_value , int ) or isinstance( splitted_value , float ) :
-        split_func = lambda sample : sample[ feature_i ] <= splitted_value
-    else :
-        split_func = lambda sample : sample[ feature_i ] == splitted_value
-    X_left = np.array( [ sample for sample in X if split_func( sample ) ] )
-    X_right = np.array( [ sample for sample in X if not split_func( sample ) ] )
-
-    return np.array( [ X_left , X_right ] )
-
-
-def calculate_gini( y ) :
-    # 将数组转化为列表
-    y = y.tolist()
-    probs = [ y.count( i ) / len( y ) for i in np.unique( y ) ]
-    gini = sum( [ p * (1 - p) for p in probs ] )
-    return gini
+np.warnings.filterwarnings( 'ignore' , category=np.VisibleDeprecationWarning )
 
 
 class BinaryDecisionTree :
-    def __init__( self , min_samples_split=3 , mini_gini_impurity=999 ,
-                  max_depth=float( "inf" ) , loss=None ) :
+    def __init__( self , min_samples_split=3 , min_gini_impurity=999 ,
+                  max_depth=float( "inf" ) , loss=None , feature_indices=None ) :
         self.root = None
         self.min_samples_split = min_samples_split
-        self.mini_gini_impurity = mini_gini_impurity
+        self.min_gini_impurity = min_gini_impurity
         self.max_depth = max_depth
         self.loss = loss
+        self.feature_indices = feature_indices
 
         self.gini_impurity_calc = None
         self.leaf_value_calc = None
 
     def _construct_tree( self , X , y , current_depth=0 ) :
-        best_gini_impurity = 999
+        best_gini_impurity = 1000
         # 初始化最优特征索引和阈值
         best_criteria = None
         best_sets = None
+        if len( np.shape( y ) ) == 1 :
+            y = np.expand_dims( y , axis=1 )
 
         Xy = np.concatenate( (X , y) , axis=1 )
         m , n = X.shape
@@ -76,7 +63,7 @@ class BinaryDecisionTree :
                     if len( Xy1 ) != 0 and len( Xy2 ) != 0 :
                         # 获取两个自己的标签值
                         #  Xy[: , n ] 则维度只剩下一维 ( m, )
-                        #  Xy[: , n : ] 维度为 (m * 1)
+                        #  Xy[: , n : ] 维度为 (m , 1)
                         y1 = Xy1[ : , n : ]
                         y2 = Xy2[ : , n : ]
 
@@ -91,7 +78,7 @@ class BinaryDecisionTree :
                                 "righty" : Xy2[ : , n : ]
                             }
 
-        if best_gini_impurity < self.mini_gini_impurity :
+        if best_gini_impurity < self.min_gini_impurity :
             left_branch = self._construct_tree( best_subsets[ 'leftX' ] , best_subsets[ 'lefty' ] , current_depth + 1 )
             right_branch = self._construct_tree( best_subsets[ 'rightX' ] , best_subsets[ 'righty' ] ,
                                                  current_depth + 1 )
@@ -115,11 +102,12 @@ class BinaryDecisionTree :
                 branch = tree.left_branch
         elif feature_value == tree.splitted_value :
             branch = tree.left_branch
-
         return self.predict_value( x , branch )
 
     def predict( self , X ) :
         y_pred = np.array( [ self.predict_value( sample ) for sample in X ] )
+        if len( y_pred.shape ) == 1 :
+            y_pred = y_pred.reshape( (-1 , 1) )
         return y_pred
 
     def fit( self , X , y , loss=None ) :
@@ -176,42 +164,42 @@ class RegressionTree( BinaryDecisionTree ) :
         super( RegressionTree , self ).fit( X , y )
 
 
-from sklearn import datasets
-
-data = datasets.load_iris()
-X , y = data.data , data.target
-X_train , X_test , y_train , y_test = train_test_split( X , y.reshape( -1 , 1 ) , test_size=0.3 )
-clf = ClassificationTree()
-clf.fit( X_train , y_train )
-y_pred = clf.predict( X_test )
-acc_own = accuracy_score( y_test , y_pred )
-
-from sklearn.tree import DecisionTreeClassifier
-
-clf = DecisionTreeClassifier()
-clf.fit( X_train , y_train )
-y_pred = clf.predict( X_test )
-acc_sklearn = accuracy_score( y_test , y_pred )
-
-print( f"accuracy of classification of own is {acc_own}, sklearn is {acc_sklearn}" )
-
-data_url = "http://lib.stat.cmu.edu/datasets/boston"
-raw_df = pd.read_csv( data_url , sep="\s+" , skiprows=22 , header=None )
-data = np.hstack( [ raw_df.values[ : :2 , : ] , raw_df.values[ 1 : :2 , :2 ] ] )
-target = raw_df.values[ 1 : :2 , 2 ]
-X , y = data , target
-y = y.reshape( (-1 , 1) )
-X_train , X_test , y_train , y_test = train_test_split( X , y , test_size=0.3 )
-reg = RegressionTree()
-reg.fit( X_train , y_train )
-y_pred = reg.predict( X_test )
-mse1 = mean_squared_error( y_test , y_pred )
-from sklearn.tree import DecisionTreeRegressor
-reg = DecisionTreeRegressor()
-reg.fit(X_train, y_train)
-y_pred = reg.predict(X_test)
-mse2 = mean_squared_error(y_test, y_pred)
-print( f"mse of own is {round( mse1 , 2 )}, sklearn is {round( mse2 , 2 )}" )
-
 if __name__ == '__main__' :
+    from sklearn import datasets
+
+    data = datasets.load_iris()
+    X , y = data.data , data.target
+    X_train , X_test , y_train , y_test = train_test_split( X , y.reshape( -1 , 1 ) , test_size=0.3 )
+    clf = ClassificationTree()
+    clf.fit( X_train , y_train )
+    y_pred = clf.predict( X_test )
+    acc_own = accuracy_score( y_test , y_pred )
+
+    from sklearn.tree import DecisionTreeClassifier
+
+    clf = DecisionTreeClassifier()
+    clf.fit( X_train , y_train )
+    y_pred = clf.predict( X_test )
+    acc_sklearn = accuracy_score( y_test , y_pred )
+
+    print( f"accuracy of classification of own is {round( acc_own , 2 )}, sklearn is {round( acc_sklearn , 2 )}" )
+
+    data_url = "http://lib.stat.cmu.edu/datasets/boston"
+    raw_df = pd.read_csv( data_url , sep="\s+" , skiprows=22 , header=None )
+    data = np.hstack( [ raw_df.values[ : :2 , : ] , raw_df.values[ 1 : :2 , :2 ] ] )
+    target = raw_df.values[ 1 : :2 , 2 ]
+    X , y = data , target
+    y = y.reshape( (-1 , 1) )
+    X_train , X_test , y_train , y_test = train_test_split( X , y , test_size=0.3 )
+    reg = RegressionTree()
+    reg.fit( X_train , y_train )
+    y_pred = reg.predict( X_test )
+    mse1 = mean_squared_error( y_test , y_pred )
+    from sklearn.tree import DecisionTreeRegressor
+
+    reg = DecisionTreeRegressor()
+    reg.fit( X_train , y_train )
+    y_pred = reg.predict( X_test )
+    mse2 = mean_squared_error( y_test , y_pred )
+    print( f"mse of own is {round( mse1 , 2 )}, sklearn is {round( mse2 , 2 )}" )
     print( "finished!" )
